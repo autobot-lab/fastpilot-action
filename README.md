@@ -44,6 +44,7 @@ jobs:
 | `version` | `latest` | fastpilot version, e.g. `0.4.1` |
 | `tests` | `tests/` | a folder of tests or one test file |
 | `args` | | more `fastpilot run` arguments, e.g. `--workers 2` |
+| `changed` | `false` | on a pull request, run the tests related to its changes first (fastpilot 0.6+); the others are listed as not run, never counted as passed. Use `fetch-depth: 0` in `actions/checkout` for exact results |
 | `install-only` | `false` | only put `fastpilot` on PATH |
 
 Outputs: `junit`, `report` (file paths) and `version`.
