@@ -14,6 +14,9 @@ inputs:
   args:
     description: More arguments for `fastpilot run`, e.g. `--workers 2`.
     default: ''
+  changed:
+    description: "On a pull request, run the tests related to its changes first (fastpilot 0.6 or newer: `fastpilot run --changed`). The others are listed as not run. Use `fetch-depth: 0` in actions/checkout for exact results."
+    default: 'false'
   install-only:
     description: Only install fastpilot (no test run), e.g. to run your own fastpilot commands.
     default: 'false'
@@ -47,4 +50,6 @@ runs:
       env:
         INPUT_TESTS: ${{ inputs.tests }}
         INPUT_ARGS: ${{ inputs.args }}
+        INPUT_CHANGED: ${{ inputs.changed }}
+        FASTPILOT_INSTALLED: ${{ steps.install.outputs.version }}
       run: '"$GITHUB_ACTION_PATH/scripts/run.sh"'

@@ -48,3 +48,26 @@ jobs:
         env:
           OUTCOME: ${{ steps.bad.outcome }}
         run: '[ "$OUTCOME" = failure ] && ! command -v fastpilot'
+  changed:
+    # `changed: true` passes `--changed origin/<base>` on a pull request (0.6+), never a bad branch
+    # name, and runs everything with a warning on an older fastpilot. A stand-in `fastpilot` prints
+    # its arguments.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: arguments for fastpilot run
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/bin"
+          printf '#!/bin/sh\necho "ARGS: $*"\n' > "$RUNNER_TEMP/bin/fastpilot"
+          chmod +x "$RUNNER_TEMP/bin/fastpilot"
+          export PATH="$RUNNER_TEMP/bin:$PATH" GITHUB_OUTPUT=/dev/null INPUT_TESTS=tests/ INPUT_ARGS="--workers 2"
+          run() { INPUT_CHANGED="$1" FASTPILOT_INSTALLED="$2" GITHUB_BASE_REF="$3" ./scripts/run.sh 2>&1; }
+          out="$(run true 0.6.0 main)"; echo "$out"; grep -q -- "--changed origin/main --workers 2" <<<"$out"
+          out="$(run true 0.6.0 '')"; echo "$out"; grep -q -- "--html .*fastpilot-report.html --changed --workers 2" <<<"$out"
+          out="$(run true 0.5.1 main)"; echo "$out"; grep -q "needs fastpilot 0.6 or newer" <<<"$out" && ! grep -q -- "--changed" <<<"$out"
+          out="$(run true 0.6.0 'x;echo hi')"; echo "$out"; grep -q "not a valid branch name" <<<"$out" && ! grep -q -- "--changed" <<<"$out"
+          out="$(run false 0.6.0 main)"; echo "$out"; ! grep -q -- "--changed" <<<"$out"
