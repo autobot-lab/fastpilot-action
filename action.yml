@@ -1,0 +1,50 @@
+name: fastpilot
+description: Run plain-language fastpilot tests (web, Android, iOS) in CI and get JUnit and HTML reports.
+author: autobot-lab
+branding:
+  icon: check-circle
+  color: green
+inputs:
+  version:
+    description: fastpilot version to use, e.g. 0.4.1, or latest.
+    default: latest
+  tests:
+    description: A folder of tests/*.md files, or one test file.
+    default: tests/
+  args:
+    description: More arguments for `fastpilot run`, e.g. `--workers 2`.
+    default: ''
+  install-only:
+    description: Only install fastpilot (no test run), e.g. to run your own fastpilot commands.
+    default: 'false'
+  github-token:
+    description: Used only to look up the latest fastpilot release (rate limits).
+    default: ${{ github.token }}
+outputs:
+  version:
+    description: The fastpilot version that was installed.
+    value: ${{ steps.install.outputs.version }}
+  junit:
+    description: Path of the JUnit XML file.
+    value: ${{ steps.run.outputs.junit }}
+  report:
+    description: Path of the HTML report.
+    value: ${{ steps.run.outputs.report }}
+runs:
+  using: composite
+  steps:
+    - name: Install fastpilot
+      id: install
+      shell: bash
+      env:
+        INPUT_VERSION: ${{ inputs.version }}
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: '"$GITHUB_ACTION_PATH/scripts/install.sh"'
+    - name: Run the tests
+      id: run
+      if: inputs.install-only != 'true'
+      shell: bash
+      env:
+        INPUT_TESTS: ${{ inputs.tests }}
+        INPUT_ARGS: ${{ inputs.args }}
+      run: '"$GITHUB_ACTION_PATH/scripts/run.sh"'
