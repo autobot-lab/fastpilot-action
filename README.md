@@ -63,4 +63,4 @@ Outputs: `junit`, `report` (file paths) and `version`.
 
 ## License
 
-Apache-2.0, like fastpilot.
+MIT, like fastpilot. Versions released before fastpilot 0.7.2 were under Apache-2.0.
